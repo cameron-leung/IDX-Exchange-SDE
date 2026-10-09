@@ -53,9 +53,9 @@ router.get('/', async (req, res) => {
 
     const limit = rawLimit !== undefined && rawLimit !== null && String(rawLimit).trim() !== ''
       ? parsedLimit
-      : 20;
+      : 20; // Parse limit from query, default to 20 if not provided or invalid, and cap at 200
     const offset = Math.max(0, Number.parseInt(getSingleQueryValue('offset'), 10) || 0);
-
+    
     // Check if database connection parameters are set in .env file
     if (
       !process.env.DB_HOST ||
@@ -152,7 +152,6 @@ router.get('/', async (req, res) => {
             total,
         });
     }
-
     // Fetch the properties with the constructed WHERE clause, limit, and offset
     const [rows] = await db.query(
         `SELECT Id, L_Address, L_Zip, L_City, L_Keyword2, LM_Dec_3, L_SystemPrice FROM rets_property ${whereClause} LIMIT ? OFFSET ?`,
@@ -175,3 +174,4 @@ router.get('/', async (req, res) => {
 });
 
 module.exports = router;
+
