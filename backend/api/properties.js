@@ -3,6 +3,16 @@ const mysql = require('mysql2/promise');
 
 const router = express.Router();
 
+// Request logging middleware: incoming requests will be logged to the console with timestamp, method, and URL
+router.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        // Log date, method, and original URL of the incoming request
+        console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}  ${res.statusCode}  ${Date.now() - start}ms`);
+    })
+    next();
+});
+
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -41,7 +51,6 @@ router.get('/', async (req, res) => {
 
     // Validate and parse limit and offset. default to 20 shown properties
     const rawLimit = getSingleQueryValue('limit');
-    const parsedLimit = Number.parseInt(rawLimit, 10);
 
     if (rawLimit !== undefined && rawLimit !== null && String(rawLimit).trim() !== '') {
       if (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit >= 200) {
@@ -154,7 +163,7 @@ router.get('/', async (req, res) => {
     }
     // Fetch the properties with the constructed WHERE clause, limit, and offset
     const [rows] = await db.query(
-        `SELECT Id, L_Address, L_Zip, L_City, L_Keyword2, LM_Dec_3, L_SystemPrice FROM rets_property ${whereClause} LIMIT ? OFFSET ?`,
+        `SELECT L_ListingID, L_Address, L_Zip, L_City, L_Keyword2, LM_Dec_3, L_SystemPrice FROM rets_property ${whereClause} LIMIT ? OFFSET ?`,
         [...values, limit, offset]
     );
     
@@ -172,6 +181,71 @@ router.get('/', async (req, res) => {
     });
   }
 });
+
+// Helper function to validate the property id parameter. Returns true if valid, false otherwise.
+const validateListingId = (value) => {
+  if (value === undefined || value === null) return false;
+
+  const normalized = String(value).trim();
+
+  if (!/^\d+$/.test(normalized) || normalized.length > 10 || normalized.length < 8) {
+    return false;
+  }
+
+  return true;
+};
+
+router.get('/:id', async (req, res) => {
+    try {
+        const rawId = req.params.id;
+
+        if (!validateListingId(rawId)) {
+            return res.status(400).json({ error: 'Malformed or oversized property id' });
+        }
+
+        const normalizedId = String(rawId).trim();
+
+        // Return 404 if property with specified id not in rets_property or there are multiple matches
+        const[rows] = await db.query('SELECT L_ListingID, L_Address, L_Zip, L_City, L_Keyword2, LM_Dec_3, L_SystemPrice FROM rets_property WHERE L_ListingID = ? LIMIT 2', [normalizedId]);
+        if (!rows || rows.length === 0 || rows.length > 1) {
+            return res.status(404).json({
+                error: 'Property with the specified id not found',
+                id: normalizedId,
+            });
+        }
+
+        return res.status(200).json(rows[0]);
+        
+    } catch (error) {
+        console.error('GET /api/properties/:id error:', error);
+        return res.status(500).json({
+            error: 'Failed to fetch property',
+            details: error.message,
+        });
+    }
+});
+router.get('/:id/openhouses', async (req, res) => {
+    try {
+        const rawId = req.params.id;
+
+        if (!validateListingId(rawId)) {
+            return res.status(400).json({ error: 'Malformed or oversized property id' });
+        }
+
+        const normalizedId = String(rawId).trim();
+        
+        // Fetch the open houses for the property with the specified id from rets_openhouse table
+        const [rows] = await db.query('SELECT L_ListingID, OpenHouseDate, OH_StartTime FROM rets_openhouse WHERE L_ListingID = ? ORDER BY OpenHouseDate ASC, OH_StartTime ASC', [normalizedId]);
+
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error('GET /api/properties/:id/openhouses error:', error);
+        return res.status(500).json({
+            error: 'Failed to fetch open houses for property',
+            details: error.message,
+        });
+    }
+})
 
 module.exports = router;
 
