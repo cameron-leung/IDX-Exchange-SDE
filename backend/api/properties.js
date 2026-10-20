@@ -195,12 +195,35 @@ const validateListingId = (value) => {
   return true;
 };
 
+router.get('/:id/openhouses', async (req, res) => {
+    try {
+        const rawId = req.params.id;
+
+        if (!validateListingId(rawId)) {
+            return res.status(400).json({ error: 'Malformed property id' });
+        }
+
+        const normalizedId = String(rawId).trim();
+        
+        // Fetch the open houses for the property with the specified id from rets_openhouse table
+        const [rows] = await db.query('SELECT L_ListingID, OpenHouseDate, OH_StartTime FROM rets_openhouse WHERE L_ListingID = ? ORDER BY OpenHouseDate ASC, OH_StartTime ASC', [normalizedId]);
+
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error('GET /api/properties/:id/openhouses error:', error);
+        return res.status(500).json({
+            error: 'Failed to fetch open houses for property',
+            details: error.message,
+        });
+    }
+})
+
 router.get('/:id', async (req, res) => {
     try {
         const rawId = req.params.id;
 
         if (!validateListingId(rawId)) {
-            return res.status(400).json({ error: 'Malformed or oversized property id' });
+            return res.status(400).json({ error: 'Malformed property id' });
         }
 
         const normalizedId = String(rawId).trim();
@@ -224,28 +247,6 @@ router.get('/:id', async (req, res) => {
         });
     }
 });
-router.get('/:id/openhouses', async (req, res) => {
-    try {
-        const rawId = req.params.id;
-
-        if (!validateListingId(rawId)) {
-            return res.status(400).json({ error: 'Malformed or oversized property id' });
-        }
-
-        const normalizedId = String(rawId).trim();
-        
-        // Fetch the open houses for the property with the specified id from rets_openhouse table
-        const [rows] = await db.query('SELECT L_ListingID, OpenHouseDate, OH_StartTime FROM rets_openhouse WHERE L_ListingID = ? ORDER BY OpenHouseDate ASC, OH_StartTime ASC', [normalizedId]);
-
-        return res.status(200).json(rows);
-    } catch (error) {
-        console.error('GET /api/properties/:id/openhouses error:', error);
-        return res.status(500).json({
-            error: 'Failed to fetch open houses for property',
-            details: error.message,
-        });
-    }
-})
 
 module.exports = router;
 
