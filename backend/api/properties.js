@@ -163,7 +163,7 @@ router.get('/', async (req, res) => {
     }
     // Fetch the properties with the constructed WHERE clause, limit, and offset
     const [rows] = await db.query(
-        `SELECT L_ListingID, L_Address, L_Zip, L_City, L_Keyword2, LM_Dec_3, L_SystemPrice FROM rets_property ${whereClause} LIMIT ? OFFSET ?`,
+        `SELECT * FROM rets_property ${whereClause} LIMIT ? OFFSET ?`,
         [...values, limit, offset]
     );
     
@@ -206,7 +206,7 @@ router.get('/:id/openhouses', async (req, res) => {
         const normalizedId = String(rawId).trim();
         
         // Fetch the open houses for the property with the specified id from rets_openhouse table
-        const [rows] = await db.query('SELECT L_ListingID, OpenHouseDate, OH_StartTime FROM rets_openhouse WHERE L_ListingID = ? ORDER BY OpenHouseDate ASC, OH_StartTime ASC', [normalizedId]);
+        const [rows] = await db.query('SELECT * FROM rets_openhouse WHERE L_ListingID = ? ORDER BY OpenHouseDate ASC, OH_StartTime ASC', [normalizedId]);
 
         return res.status(200).json(rows);
     } catch (error) {
@@ -229,7 +229,7 @@ router.get('/:id', async (req, res) => {
         const normalizedId = String(rawId).trim();
 
         // Return 404 if property with specified id not in rets_property or there are multiple matches
-        const[rows] = await db.query('SELECT L_ListingID, L_Address, L_Zip, L_City, L_Keyword2, LM_Dec_3, L_SystemPrice FROM rets_property WHERE L_ListingID = ? LIMIT 2', [normalizedId]);
+        const[rows] = await db.query('SELECT * FROM rets_property WHERE L_ListingID = ? LIMIT 2', [normalizedId]);
         if (!rows || rows.length === 0 || rows.length > 1) {
             return res.status(404).json({
                 error: 'Property with the specified id not found',
