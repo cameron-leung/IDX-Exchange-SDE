@@ -5,6 +5,8 @@ import PropertyCard from './PropertyCard';
 const ListingsPage = () => {
     // State to hold the list of properties, loading status, and error message
     const [items, setItems] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [count, setCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -16,9 +18,13 @@ const ListingsPage = () => {
             try {
                 const data = await getProperties();
                 const results = Array.isArray(data?.results) ? data.results : [];
+                const total = data?.total ?? 0;
+                const count = results.length;
 
                 if (isMounted) {
                     setItems(results);
+                    setTotal(total);
+                    setCount(count);
                 }
             } catch {
                 // Handle errors and set error message if server not responding, request rejected, fetch, or network error
@@ -43,6 +49,7 @@ const ListingsPage = () => {
     if (error) return <div>{error}</div>;
 
     return (
+        <div> 
         <div className="listings-page" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', padding: '20px' }}>
             {items.map((property, index) => (
                 <PropertyCard
@@ -51,6 +58,8 @@ const ListingsPage = () => {
                 />
             ))}
         </div>
+         <p style = {{textAlign: 'center'}}> Showing {count} of {total} </p>
+         </div>
     );
 };
 
