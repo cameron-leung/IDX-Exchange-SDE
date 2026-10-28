@@ -58,7 +58,7 @@ const ListingsPage = () => {
                 />
             ))}
         </div>
-         <p style = {{textAlign: 'center'}}> Showing {count} of {total} </p>
+         <p style = {{textAlign: 'center', fontFamily: 'Verdana'}}> Showing {count} of {total} </p>
          </div>
     );
 };
