@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import "./PropertyFilters.css";
 
-const PropertyFilters = () => {
+const PRICE_STEP = 5000;
+const MAX_PRICE = 50000000;
+
+const PropertyFilters = ({ onApply, initialFilters = {} }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [city, setCity] = useState("");
-  const [zipcode, setZipcode] = useState("");
-  const [beds, setBeds] = useState("0");
-  const [baths, setBaths] = useState("0");
-  const [minPrice, setMinPrice] = useState(800);
-  const [maxPrice, setMaxPrice] = useState(4500);
+  const [city, setCity] = useState(initialFilters.city ?? "");
+  const [zipcode, setZipcode] = useState(initialFilters.zipcode ?? initialFilters.zip ?? "");
+  const [beds, setBeds] = useState(initialFilters.beds ?? "");
+  const [baths, setBaths] = useState(initialFilters.baths ?? "");
+  const [minPrice, setMinPrice] = useState(Number(initialFilters.minPrice ?? 0));
+  const [maxPrice, setMaxPrice] = useState(Number(initialFilters.maxPrice ?? MAX_PRICE));
   const [draggingHandle, setDraggingHandle] = useState(null);
   const sliderRef = useRef(null);
 
@@ -33,10 +36,10 @@ const PropertyFilters = () => {
   const resetFilters = () => {
     setCity("");
     setZipcode("");
-    setBeds("0");
-    setBaths("0");
-    setMinPrice(800);
-    setMaxPrice(4500);
+    setBeds("");
+    setBaths("");
+    setMinPrice(0);
+    setMaxPrice(MAX_PRICE);
   };
 
   useEffect(() => {
@@ -47,14 +50,14 @@ const PropertyFilters = () => {
 
       const rect = sliderRef.current.getBoundingClientRect();
       const relativeX = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
-      const nextValue = Math.round((relativeX / rect.width) * 10000 / 50) * 50;
+      const nextValue = Math.round((relativeX / rect.width) * MAX_PRICE / PRICE_STEP) * PRICE_STEP;
 
       if (draggingHandle === "min") {
         handleMinChange(Math.max(0, Math.min(nextValue, maxPrice)));
       }
 
       if (draggingHandle === "max") {
-        handleMaxChange(Math.max(minPrice, Math.min(nextValue, 10000)));
+        handleMaxChange(Math.max(minPrice, Math.min(nextValue, MAX_PRICE)));
       }
     };
 
@@ -70,19 +73,28 @@ const PropertyFilters = () => {
   });
 
   const applyFilters = () => {
-    console.log({
-      city,
-      zipcode,
-      beds,
-      baths,
-      minPrice,
-      maxPrice,
-    });
+    const nextFilters = {
+      city: city.trim() || "",
+      zipcode: zipcode.trim() || "",
+      beds: beds || "",
+      baths: baths || "",
+      minPrice: minPrice === 0 ? "" : minPrice,
+      maxPrice: maxPrice === MAX_PRICE ? "" : maxPrice,
+    };
+
+    onApply?.(nextFilters);
     setIsOpen(false);
   };
 
   return (
-    <div className="property-filters-wrapper">
+    <div
+      className="property-filters-wrapper"
+      style={{
+        "--property-grid-columns": "4",
+        "--property-page-side-margin": "12px",
+        "--property-card-padding": "8px",
+      }}
+    >
       <button
         type="button"
         onClick={() => setIsOpen(true)}
@@ -145,12 +157,22 @@ const PropertyFilters = () => {
                     className="property-filters-input"
                     style={{ width: "100%" }}
                   >
-                    <option value="0">0+</option>
-                    <option value="1">1+</option>
-                    <option value="2">2+</option>
-                    <option value="3">3+</option>
-                    <option value="4">4+</option>
-                    <option value="5">5+</option>
+                    <option value="">None</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
                   </select>
                 </div>
 
@@ -162,14 +184,47 @@ const PropertyFilters = () => {
                     className="property-filters-input"
                     style={{ width: "100%" }}
                   >
-                    <option value="0">0+</option>
-                    <option value="0.5">0.5+</option>
-                    <option value="1">1+</option>
-                    <option value="1.5">1.5+</option>
-                    <option value="2">2+</option>
-                    <option value="2.5">2.5+</option>
-                    <option value="3">3+</option>
-                    <option value="4">4+</option>
+                    <option value="">None</option>
+                    <option value="0.5">0.5</option>
+                    <option value="1">1</option>
+                    <option value="1.5">1.5</option>
+                    <option value="2">2</option>
+                    <option value="2.5">2.5</option>
+                    <option value="3">3</option>
+                    <option value="3.5">3.5</option>
+                    <option value="4">4</option>
+                    <option value="4.5">4.5</option>
+                    <option value="5">5</option>
+                    <option value="5.5">5.5</option>
+                    <option value="6">6</option>
+                    <option value="6.5">6.5</option>
+                    <option value="7">7</option>
+                    <option value="7.5">7.5</option>
+                    <option value="8">8</option>
+                    <option value="8.5">8.5</option>
+                    <option value="9">9</option>
+                    <option value="9.5">9.5</option>
+                    <option value="10">10</option>
+                    <option value="10.5">10.5</option>
+                    <option value="11">11</option>
+                    <option value="11.5">11.5</option>
+                    <option value="12">12</option>
+                    <option value="12.5">12.5</option>
+                    <option value="13">13</option>
+                    <option value="13.5">13.5</option>
+                    <option value="14">14</option>
+                    <option value="14.5">14.5</option>
+                    <option value="15">15</option>
+                    <option value="15.5">15.5</option>
+                    <option value="16">16</option>
+                    <option value="16.5">16.5</option>
+                    <option value="17">17</option>
+                    <option value="17.5">17.5</option>
+                    <option value="18">18</option>
+                    <option value="18.5">18.5</option>
+                    <option value="19">19</option>
+                    <option value="19.5">19.5</option>
+                    <option value="20">20</option>
                   </select>
                 </div>
               </div>
@@ -206,8 +261,8 @@ const PropertyFilters = () => {
                   style={{
                     position: "absolute",
                     top: "50%",
-                    left: `${(minPrice / 10000) * 100}%`,
-                    width: `${((maxPrice - minPrice) / 10000) * 100}%`,
+                    left: `${(minPrice / MAX_PRICE) * 100}%`,
+                    width: `${((maxPrice - minPrice) / MAX_PRICE) * 100}%`,
                     height: 6,
                     transform: "translateY(-50%)",
                     borderRadius: 999,
@@ -218,7 +273,7 @@ const PropertyFilters = () => {
                 <div
                   aria-label="Minimum price"
                   aria-valuemin={0}
-                  aria-valuemax={10000}
+                  aria-valuemax={MAX_PRICE}
                   aria-valuenow={minPrice}
                   role="slider"
                   onPointerDown={(event) => {
@@ -228,7 +283,7 @@ const PropertyFilters = () => {
                   style={{
                     position: "absolute",
                     top: "50%",
-                    left: `${(minPrice / 10000) * 100}%`,
+                    left: `${(minPrice / MAX_PRICE) * 100}%`,
                     width: 16,
                     height: 16,
                     transform: "translate(-50%, -50%)",
@@ -244,7 +299,7 @@ const PropertyFilters = () => {
                 <div
                   aria-label="Maximum price"
                   aria-valuemin={0}
-                  aria-valuemax={10000}
+                  aria-valuemax={MAX_PRICE}
                   aria-valuenow={maxPrice}
                   role="slider"
                   onPointerDown={(event) => {
@@ -254,7 +309,7 @@ const PropertyFilters = () => {
                   style={{
                     position: "absolute",
                     top: "50%",
-                    left: `${(maxPrice / 10000) * 100}%`,
+                    left: `${(maxPrice / MAX_PRICE) * 100}%`,
                     width: 16,
                     height: 16,
                     transform: "translate(-50%, -50%)",

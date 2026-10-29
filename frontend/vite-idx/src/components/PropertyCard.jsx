@@ -46,34 +46,6 @@ const getFirstPhoto = (value) => {
 };
 const PropertyCard = ({ property }) => {
 
-  // const getFirstPhoto = (value) => {
-
-  //   if (!value) return null;
-  //   if (Array.isArray(value)) {
-  //     const stripped = strip(value[0]) || getFirstPhoto(value[0]);
-  //     if (stripped) return stripped;
-  //   }
-
-  //   if (typeof value === 'string') {
-  //     const stripped = strip(value);
-  //     if (stripped) return stripped;
-
-  //     const match = value.match(/https?:\/\/[^\s,]+/i);
-  //     return match ? match[0] : null;
-  //   }
-
-  //   if (typeof value === 'object') {
-  //     if (typeof value.url === 'string') return strip(value.url);
-  //     if (typeof value.src === 'string') return strip(value.src);
-  //     if (typeof value.image === 'string') return strip(value.image);
-  //     if (Array.isArray(value.images)) return getFirstPhoto(value.images);
-  //     if (Array.isArray(value.photos)) return getFirstPhoto(value.photos);
-  //   }
-
-  //   return null;
-  // }
-
-
   const photo = getFirstPhoto(property?.L_Photos) || FALLBACK_IMAGE;
   const address = property?.L_Address || property?.address || 'Address unavailable';
   const city = property?.L_City || property?.city || 'City unavailable';
@@ -87,14 +59,23 @@ const PropertyCard = ({ property }) => {
     : 'Price unavailable';
 
   return (
-    <div className = "propertycard">
+    <div
+      className="propertycard"
+      style={{
+        margin: '0 6px',
+        padding: '0 6px',
+        boxSizing: 'border-box',
+        width: 'auto',
+        maxWidth: '100%',
+      }}
+    >
       <img
         src={photo}
         alt={`${address} ${city}`}
         
       />
 
-      <div style={{ padding: '12px' }}>
+      <div style={{ padding: '10px' }}>
         <div
           style={{
             display: 'flex',
