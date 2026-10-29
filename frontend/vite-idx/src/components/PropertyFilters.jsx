@@ -13,6 +13,7 @@ const PropertyFilters = ({ onApply, initialFilters = {} }) => {
   const [minPrice, setMinPrice] = useState(Number(initialFilters.minPrice ?? 0));
   const [maxPrice, setMaxPrice] = useState(Number(initialFilters.maxPrice ?? MAX_PRICE));
   const [draggingHandle, setDraggingHandle] = useState(null);
+  const [filterError, setFilterError] = useState("");
   const sliderRef = useRef(null);
 
   const handleMinChange = (value) => {
@@ -40,6 +41,52 @@ const PropertyFilters = ({ onApply, initialFilters = {} }) => {
     setBaths("");
     setMinPrice(0);
     setMaxPrice(MAX_PRICE);
+    setFilterError("");
+  };
+
+  const validateFilters = (filters) => {
+    const cityValue = filters.city?.trim();
+
+    if (cityValue) {
+      if (/\d/.test(cityValue) || /[!@#$%^&*()_+=[\]{}|\\:";<>?/~`]/.test(cityValue)) {
+        return "No properties found";
+      }
+
+      if (!/^[\p{L}\p{M}\s.'’\-&/]+$/u.test(cityValue)) {
+        return "No properties found";
+      }
+    }
+
+    if (filters.zipcode && !/^\d{1,10}$/.test(filters.zipcode)) {
+      return "No properties found";
+    }
+
+    const beds = Number(filters.beds);
+    const baths = Number(filters.baths);
+    const minPriceValue = Number(filters.minPrice);
+    const maxPriceValue = Number(filters.maxPrice);
+
+    if (filters.beds && (!Number.isFinite(beds) || beds < 0 || beds > 15)) {
+      return "No properties found";
+    }
+
+    if (filters.baths && (!Number.isFinite(baths) || baths < 0 || baths > 20)) {
+      return "No properties found";
+    }
+
+    if (filters.minPrice !== "" && (!Number.isFinite(minPriceValue) || minPriceValue < 0)) {
+      return "No properties found";
+    }
+
+    if (filters.maxPrice !== "" && (!Number.isFinite(maxPriceValue) || maxPriceValue < 0)) {
+      return "No properties found";
+    }
+
+    if (filters.minPrice !== "" && filters.maxPrice !== "" && minPriceValue > maxPriceValue) {
+      return "No properties found";
+    }
+
+    return "";
   };
 
   useEffect(() => {
@@ -81,6 +128,13 @@ const PropertyFilters = ({ onApply, initialFilters = {} }) => {
       minPrice: minPrice === 0 ? "" : minPrice,
       maxPrice: maxPrice === MAX_PRICE ? "" : maxPrice,
     };
+
+    const errorMessage = validateFilters(nextFilters);
+    setFilterError(errorMessage);
+
+    if (errorMessage) {
+      return;
+    }
 
     onApply?.(nextFilters);
     setIsOpen(false);
@@ -323,6 +377,12 @@ const PropertyFilters = ({ onApply, initialFilters = {} }) => {
                 />
               </div>
             </div>
+
+            {filterError && (
+              <div className="property-filters-error" style={{ color: "#dc2626", marginTop: 12, fontSize: 14 }}>
+                No properties found
+              </div>
+            )}
 
             <div className="property-filters-actions">
               <button type="button" onClick={resetFilters} className="property-filters-secondary-button">

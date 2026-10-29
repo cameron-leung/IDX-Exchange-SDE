@@ -22,20 +22,14 @@ export function buildPropertiesQuery(filters = {}) {
 
         const normalizedKey = key === 'zip' ? 'zipcode' : key;
 
-        if (normalizedKey === 'minPrice' && Number(value) === 0) {
-            continue;
-        }
-
-        if (normalizedKey === 'maxPrice' && Number(value) === 10000) {
-            continue;
-        }
-
-        if (normalizedKey === 'beds' && Number(value) === 0) {
-            continue;
-        }
-
-        if (normalizedKey === 'baths' && Number(value) === 0) {
-            continue;
+        if (['minPrice', 'maxPrice', 'beds', 'baths'].includes(normalizedKey)) {
+            const numericValue = Number(value);
+            if (numericValue === 0) {
+                continue;
+            }
+            if (normalizedKey === 'maxPrice' && numericValue === 10000) {
+                continue;
+            }
         }
 
         params.set(normalizedKey, stringValue);

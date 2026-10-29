@@ -16,16 +16,17 @@
 }
 
 .propertycard img {
+    padding-top: 5px;
   width: 100%;
-  height: 170px;
+  height: 180px;
   object-fit: cover;
-  display: block;
+  border-radius: 12px;
 }
 
 .propertycard #details {
   display: flex;
   flex-direction: row;
-  gap: 5px;
+
   color: #374151;
   font-size: 14px;
   justify-content: flex-end;

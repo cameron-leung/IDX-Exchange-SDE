@@ -51,18 +51,17 @@ router.get('/', async (req, res) => {
 
     // Validate and parse limit and offset. default to 20 shown properties
     const rawLimit = getSingleQueryValue('limit');
+    const parsedLimit = rawLimit !== undefined && rawLimit !== null && String(rawLimit).trim() !== ''
+      ? Number(rawLimit)
+      : null;
 
-    if (rawLimit !== undefined && rawLimit !== null && String(rawLimit).trim() !== '') {
-      if (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit >= 200) {
-        return res.status(400).json({
-          error: 'Query parameter limit must be between 1 and 200.',
-        });
-      }
+    if (parsedLimit !== null && (Number.isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit >= 200)) {
+      return res.status(400).json({
+        error: 'Query parameter limit must be between 1 and 200.',
+      });
     }
 
-    const limit = rawLimit !== undefined && rawLimit !== null && String(rawLimit).trim() !== ''
-      ? parsedLimit
-      : 20; // Parse limit from query, default to 20 if not provided or invalid, and cap at 200
+    const limit = parsedLimit !== null ? parsedLimit : 20;
     const offset = Math.max(0, Number.parseInt(getSingleQueryValue('offset'), 10) || 0);
     
     // Check if database connection parameters are set in .env file
@@ -154,8 +153,8 @@ router.get('/', async (req, res) => {
     // Use the filters to construct the parameterized WHERE clause for the SQL query
     const whereClause = filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : '';
     const [[{ total }]] = await db.query(`SELECT COUNT(*) AS total FROM rets_property ${whereClause}`, values);
-    
-    if (offset >= total) {
+
+    if (total > 0 && offset >= total) {
         return res.status(400).json({
             error: 'Offset exceeds total number of properties',
             total,
