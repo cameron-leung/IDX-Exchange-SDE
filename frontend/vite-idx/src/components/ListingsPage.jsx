@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getProperties } from '../api/properties';
 import PropertyCard from './PropertyCard';
+import PropertyFilters from './PropertyFilters';
 
 const ListingsPage = () => {
     // State to hold the list of properties, loading status, and error message
@@ -50,7 +51,10 @@ const ListingsPage = () => {
 
     return (
         <div> 
-        <div className="listings-page" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', padding: '20px' }}>
+            <div style = {{display: 'flex', justifyContent: 'flex-end', padding: '20px 20px'}}>
+                <PropertyFilters />
+        </div>
+        <div className="listings-page" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', padding: '50px' }}>
             {items.map((property, index) => (
                 <PropertyCard
                     key={property.L_ListingID || property.id || `${property.L_Address || 'property'}-${index}`}
@@ -60,6 +64,7 @@ const ListingsPage = () => {
         </div>
          <p style = {{textAlign: 'center', fontFamily: 'Verdana'}}> Showing {count} of {total} </p>
          </div>
+         
     );
 };
 
