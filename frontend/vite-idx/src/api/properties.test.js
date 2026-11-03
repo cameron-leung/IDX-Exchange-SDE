@@ -74,6 +74,18 @@ describe('buildPropertiesQuery', () => {
 
     expect(query.toString()).toBe('');
   });
+
+  it('includes pagination values when provided', () => {
+    const query = buildPropertiesQuery({
+      city: 'Austin',
+      limit: 12,
+      offset: 24,
+    });
+
+    expect(query.get('city')).toBe('Austin');
+    expect(query.get('limit')).toBe('12');
+    expect(query.get('offset')).toBe('24');
+  });
 });
 
 describe('property API helpers', () => {

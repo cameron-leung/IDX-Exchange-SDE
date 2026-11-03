@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getProperties } from '../api/properties';
+import Pagination from './Pagination';
 import PropertyCard from './PropertyCard';
 import PropertyFilters from './PropertyFilters';
 
@@ -8,6 +9,8 @@ const ListingsPage = () => {
     const [items, setItems] = useState([]);
     const [total, setTotal] = useState(0);
     const [count, setCount] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(20);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [filters, setFilters] = useState({
@@ -101,15 +104,22 @@ const ListingsPage = () => {
             }
 
             try {
-                const data = await getProperties(normalizedFilters);
+                const offset = (currentPage - 1) * itemsPerPage;
+                const data = await getProperties(normalizedFilters, { limit: itemsPerPage, offset });
                 const results = Array.isArray(data?.results) ? data.results : [];
                 const total = data?.total ?? 0;
                 const count = results.length;
 
                 if (isMounted) {
+                    const nextTotalPages = total > 0 ? Math.ceil(total / itemsPerPage) : 1;
+
                     setItems(results);
                     setTotal(total);
                     setCount(count);
+
+                    if (currentPage > nextTotalPages && nextTotalPages > 0) {
+                        setCurrentPage(nextTotalPages);
+                    }
                 }
             } catch (loadError) {
                 const status = loadError?.response?.status ?? loadError?.status;
@@ -153,11 +163,12 @@ const ListingsPage = () => {
         return () => {
             isMounted = false;
         };
-    }, [filters]);
+    }, [filters, currentPage, itemsPerPage]);
 
     const handleFiltersApply = (nextFilters) => {
         const safeFilters = sanitizeFilters(nextFilters);
 
+        setCurrentPage(1);
         setFilters({
             city: safeFilters.city || '',
             zipcode: safeFilters.zipcode || '',
@@ -167,6 +178,8 @@ const ListingsPage = () => {
             baths: Number(safeFilters.baths) === 0 ? '' : safeFilters.baths || '',
         });
     };
+
+    const totalPages = total > 0 ? Math.ceil(total / itemsPerPage) : 1;
 
     const renderListingContent = () => {
         if (loading) {
@@ -202,18 +215,64 @@ const ListingsPage = () => {
     };
 
     return (
-        <div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '20px 20px' }}>
-                <PropertyFilters onApply={handleFiltersApply} initialFilters={filters} />
-            </div>
+        <div style={{ padding: '32px 28px 40px', background: '#f5f7fb', minHeight: '100vh' }}>
+            <header
+                style={{
+                    width: '100%',
+                    maxWidth: '1200px',
+                    margin: '0 auto 20px',
+                    paddingBottom: '16px',
+                    borderBottom: '1px solid #dfe3e8',
+                }}
+            >
+                <h1
+                    style={{
+                        margin: '100px 0 40px 0',
+                        maxWidth: '60vw',
+                        minWidth: '280px',
+                        fontFamily: 'Inter, Arial, sans-serif',
+                        fontSize: '64px',
+                        lineHeight: 1.1,
+                        letterSpacing: '-0.04em',
+                        color: '#111827',
+                    }}
+                >
+                    Discover the perfect home you'd love to live in.
+                </h1>
+            </header>
 
-            <div className="listings-page" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', padding: '20px' }}>
-                {renderListingContent()}
-            </div>
+            <div style={{ display: 'flex', gap: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+                <aside
+                    style={{
+                        width: '300px',
+                        flexShrink: 0,
+                        position: 'sticky',
+                        top: '24px',
+                        alignSelf: 'flex-start',
+                    }}
+                >
+                    <PropertyFilters onApply={handleFiltersApply} initialFilters={filters} alwaysOpen />
+                </aside>
 
-            {!loading && !error && (
-                <p style={{ textAlign: 'center', fontFamily: 'Verdana' }}>Showing {count} of {total}</p>
-            )}
+                <main style={{ flex: 1, minWidth: 0 }}>
+                    <div className="listings-page" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '20px' }}>
+                        {renderListingContent()}
+                    </div>
+
+                    {!loading && !error && (
+                        <>
+                            <p style={{ textAlign: 'center', fontFamily: 'Verdana', marginTop: '24px' }}>Showing {count} of {total}</p>
+                            {totalPages > 1 && (
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={setCurrentPage}
+                                />
+                            )}
+                        </>
+                    )}
+                </main>
+            </div>
         </div>
     );
 };

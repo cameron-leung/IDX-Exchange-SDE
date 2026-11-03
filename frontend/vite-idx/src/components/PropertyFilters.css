@@ -5,6 +5,20 @@
   font-family: Inter, Arial, sans-serif;
 }
 
+.property-filters-wrapper-panel {
+  width: 100%;
+}
+
+.property-filters-panel {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.08);
+  padding: 20px 18px 18px;
+  box-sizing: border-box;
+}
+
 .property-filters-button {
   display: flex;
   align-items: center;

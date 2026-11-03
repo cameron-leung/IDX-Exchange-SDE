@@ -59,20 +59,14 @@ const PropertyCard = ({ property }) => {
     : 'Price unavailable';
 
   return (
-    <div
-      className="propertycard"
-      style={{
-        margin: '0 6px',
-        padding: '0 6px',
-        boxSizing: 'border-box',
-        width: 'auto',
-        maxWidth: '100%',
-      }}
-    >
+    <div className = "propertycard">
       <img
         src={photo}
         alt={`${address} ${city}`}
-        
+        onError={(event) => {
+          event.currentTarget.onerror = null;
+          event.currentTarget.src = FALLBACK_IMAGE;
+        }}
       />
 
       <div style={{ padding: '10px' }}>

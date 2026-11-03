@@ -38,8 +38,14 @@ export function buildPropertiesQuery(filters = {}) {
     return params;
 }
 
-export async function getProperties(filters = {}) {
-    return apiGet('/properties', buildPropertiesQuery(filters));
+export async function getProperties(filters = {}, pagination = {}) {
+    const query = buildPropertiesQuery({
+        ...filters,
+        ...(pagination.limit !== undefined ? { limit: pagination.limit } : {}),
+        ...(pagination.offset !== undefined ? { offset: pagination.offset } : {}),
+    });
+
+    return apiGet('/properties', query);
 }
 
 export async function getPropertyById(id) {
