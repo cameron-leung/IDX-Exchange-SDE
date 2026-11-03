@@ -1,6 +1,12 @@
+import { clampPage } from './paginationUtils.js';
+
 const Pagination = ({ currentPage = 1, totalPages = 1, onPageChange }) => {
     const pageCount = Math.max(1, Number.isFinite(totalPages) ? Number(totalPages) : 1);
-    const activePage = Math.min(Math.max(Number(currentPage) || 1, 1), pageCount);
+    const activePage = clampPage(currentPage, pageCount);
+
+    if (pageCount <= 1) {
+        return null;
+    }
 
     const getVisiblePages = () => {
         if (pageCount <= 7) {
@@ -23,11 +29,11 @@ const Pagination = ({ currentPage = 1, totalPages = 1, onPageChange }) => {
     const visiblePages = getVisiblePages();
 
     const handlePageChange = (nextPage) => {
-        if (!onPageChange || nextPage < 1 || nextPage > pageCount) {
+        if (!onPageChange) {
             return;
         }
 
-        onPageChange(nextPage);
+        onPageChange(clampPage(nextPage, pageCount));
     };
 
     return (

@@ -3,6 +3,7 @@ import { getProperties } from '../api/properties';
 import Pagination from './Pagination';
 import PropertyCard from './PropertyCard';
 import PropertyFilters from './PropertyFilters';
+import { clampPage, getOffset, scrollToListingsTopAfterRender } from './paginationUtils.js';
 
 const ListingsPage = () => {
     // State to hold the list of properties, loading status, and error message
@@ -104,7 +105,7 @@ const ListingsPage = () => {
             }
 
             try {
-                const offset = (currentPage - 1) * itemsPerPage;
+                const offset = getOffset(currentPage, itemsPerPage);
                 const data = await getProperties(normalizedFilters, { limit: itemsPerPage, offset });
                 const results = Array.isArray(data?.results) ? data.results : [];
                 const total = data?.total ?? 0;
@@ -177,9 +178,16 @@ const ListingsPage = () => {
             beds: Number(safeFilters.beds) === 0 ? '' : safeFilters.beds || '',
             baths: Number(safeFilters.baths) === 0 ? '' : safeFilters.baths || '',
         });
+        scrollToListingsTopAfterRender();
     };
 
     const totalPages = total > 0 ? Math.ceil(total / itemsPerPage) : 1;
+
+    const handlePageChange = (nextPage) => {
+        const safePage = clampPage(nextPage, totalPages);
+        setCurrentPage(safePage);
+        scrollToListingsTopAfterRender();
+    };
 
     const renderListingContent = () => {
         if (loading) {
@@ -255,18 +263,18 @@ const ListingsPage = () => {
                 </aside>
 
                 <main style={{ flex: 1, minWidth: 0 }}>
-                    <div className="listings-page" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '20px' }}>
+                    <div id="listings-page" className="listings-page" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '20px' }}>
                         {renderListingContent()}
                     </div>
 
                     {!loading && !error && (
                         <>
                             <p style={{ textAlign: 'center', fontFamily: 'Verdana', marginTop: '24px' }}>Showing {count} of {total}</p>
-                            {totalPages > 1 && (
+                            {items.length > 0 && totalPages > 1 && (
                                 <Pagination
                                     currentPage={currentPage}
                                     totalPages={totalPages}
-                                    onPageChange={setCurrentPage}
+                                    onPageChange={handlePageChange}
                                 />
                             )}
                         </>
