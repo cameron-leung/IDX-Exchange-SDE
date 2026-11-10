@@ -10,8 +10,10 @@ const FALLBACK_IMAGE = 'https://via.placeholder.com/800x500?text=Image+Unavailab
 const PropertyDetailPage = () => {
   const { id } = useParams();
   const [property, setProperty] = useState(null);
+  const [openHouseRemarks, setOpenHouseRemarks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const propertyId = property?.L_ListingID ?? property?.id ?? id;
 
   useEffect(() => {
     let isMounted = true;
@@ -59,7 +61,6 @@ const PropertyDetailPage = () => {
     { label: 'Sqft', value: property?.LM_Int2_3 ?? property?.sqft ?? '—' },
     { label: 'Year Built', value: yearBuilt },
   ];
-  const propertyId = property?.L_ListingID ?? property?.id ?? id;
   const photo = getFirstPhotoUrl(property?.L_Photos) || FALLBACK_IMAGE;
 
   return (
@@ -128,18 +129,42 @@ const PropertyDetailPage = () => {
 
               {propertyId && (
                 <div style={{ display: 'flex', alignItems: 'flex-start', paddingTop: '8px' }}>
-                  <PropertyDetailOpenHouse L_listingID={propertyId} />
+                  <PropertyDetailOpenHouse
+                    L_listingID={propertyId}
+                    onOpenHousesLoaded={setOpenHouseRemarks}
+                  />
                 </div>
               )}
             </div>
 
-            <div style={{ width: '100%', display: 'flex', gap: '20px', paddingTop: '20px', alignItems: 'flex-start' }}>
-              {property?.L_Remarks && (
-                <div style={{ flex: '1 1 auto', minWidth: 0, fontSize: '14px', lineHeight: 1.7, color: '#4b5563', textAlign: 'left', maxWidth: '1000px' }}>
-                  {property.L_Remarks}
+
+            {(property?.L_Remarks || openHouseRemarks.length > 0) && (
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px', paddingTop: '20px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7280' }}>
+                  About
                 </div>
-              )}
-            </div>
+
+                <div style={{ flex: '1 1 auto', minWidth: 0, fontSize: '14px', lineHeight: 1.7, color: '#4b5563', textAlign: 'left', maxWidth: '1000px' }}>
+                  {property?.L_Remarks && (
+                    <div style={{ marginBottom: openHouseRemarks.length > 0 ? '16px' : 0 }}>{property.L_Remarks}</div>
+                  )}
+
+                  {openHouseRemarks.length > 0 && (
+                    <div style={{ paddingTop: '12px', borderTop: property?.L_Remarks ? '1px solid #e5e7eb' : 'none' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7280', marginBottom: '8px' }}>
+                        Open House Remarks
+                      </div>
+
+                      {openHouseRemarks.map((remark, index) => (
+                        <div key={`${remark}-${index}`} style={{ marginTop: index > 0 ? '8px' : 0 }}>
+                          {remark}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

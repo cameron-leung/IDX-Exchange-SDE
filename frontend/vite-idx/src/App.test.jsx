@@ -54,6 +54,8 @@ describe('App routing', () => {
         OpenHouseDate: '2026-11-15',
         OH_StartTime: '1:00 PM',
         OH_EndTime: '3:00 PM',
+        OpenHouseRemarks: 'See sales agent in sales office at 1712 S Prosperity Street.',
+        all_data: '{"OpenHouseRemarks":"See sales agent in sales office at 1712 S Prosperity Street."}',
       },
     ]);
   });
@@ -78,7 +80,7 @@ describe('App routing', () => {
     expect(await screen.findByText(/\$750,000/i)).toBeTruthy();
   });
 
-  it('loads and displays open house data on the detail page', async () => {
+  it('loads and displays open house data on the detail page without putting remarks in the card', async () => {
     window.history.pushState({}, '', '/property/abc-123');
 
     render(<App />);
@@ -87,8 +89,12 @@ describe('App routing', () => {
       expect(propertiesApi.getPropertyOpenHouses).toHaveBeenCalledWith('abc-123');
     });
 
-    expect(await screen.findByText(/Open House/i)).toBeTruthy();
+    const openHouseHeading = await screen.findByText(/Open House Details/i);
+    const cardText = openHouseHeading.parentElement?.textContent || '';
+
     expect(screen.getByText(/2026-11-15/i)).toBeTruthy();
+    expect(cardText).not.toContain('See sales agent in sales office at 1712 S Prosperity Street.');
+    expect(screen.getByText(/See sales agent in sales office at 1712 S Prosperity Street./i)).toBeTruthy();
   });
 
   it('normalizes serialized photo payloads the same way across pages', () => {

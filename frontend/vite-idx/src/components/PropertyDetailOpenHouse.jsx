@@ -79,7 +79,47 @@ const formatTimeToAmPm = (value) => {
   return `${displayHours}:${String(minutes).padStart(2, '0')} ${suffix}`;
 };
 
-const PropertyDetailOpenHouse = ({ L_listingID }) => {
+const parseAllData = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === 'object') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+};
+
+const getOpenHouseRemarks = (item) => {
+  const directRemarks = item?.OpenHouseRemarks || item?.openHouseRemarks || item?.open_house_remarks;
+  if (directRemarks) {
+    return String(directRemarks).trim();
+  }
+
+  const allData = parseAllData(item?.all_data || item?.allData || item?.All_Data);
+  const nestedRemarks = allData?.OpenHouseRemarks || allData?.openHouseRemarks || allData?.open_house_remarks;
+  if (nestedRemarks) {
+    return String(nestedRemarks).trim();
+  }
+
+  return '';
+};
+
+const PropertyDetailOpenHouse = ({ L_listingID, onOpenHousesLoaded }) => {
   const [state, dispatch] = useReducer(openHouseReducer, initialState);
   const { openHouses, loading, error } = state;
 
@@ -101,6 +141,14 @@ const PropertyDetailOpenHouse = ({ L_listingID }) => {
 
         const data = await getPropertyOpenHouses(L_listingID);
         const items = Array.isArray(data) ? data : data?.results || data?.data || [];
+
+        if (onOpenHousesLoaded) {
+          const remarks = items
+            .map((item) => getOpenHouseRemarks(item))
+            .filter(Boolean);
+
+          onOpenHousesLoaded(remarks);
+        }
 
         if (isMounted) {
           dispatch({ type: 'SUCCESS', payload: items });
