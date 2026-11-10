@@ -269,7 +269,6 @@ const ListingsPage = () => {
 
                     {!loading && !error && (
                         <>
-                            <p style={{ textAlign: 'center', fontFamily: 'Verdana', marginTop: '24px' }}>Showing {count} of {total}</p>
                             {items.length > 0 && totalPages > 1 && (
                                 <Pagination
                                     currentPage={currentPage}
@@ -277,6 +276,7 @@ const ListingsPage = () => {
                                     onPageChange={handlePageChange}
                                 />
                             )}
+                            <p style={{ textAlign: 'center', fontFamily: 'Verdana', marginTop: '24px' }}>Showing {count} of {total}</p>
                         </>
                     )}
                 </main>
