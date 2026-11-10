@@ -181,13 +181,15 @@ router.get('/', async (req, res) => {
   }
 });
 
+const INVALID_PROPERTY_ID_MESSAGE = 'Invalid Property ID';
+
 // Helper function to validate the property id parameter. Returns true if valid, false otherwise.
 const validateListingId = (value) => {
   if (value === undefined || value === null) return false;
 
   const normalized = String(value).trim();
 
-  if (!/^\d+$/.test(normalized) || normalized.length > 10 || normalized.length < 1) {
+  if (!/^\d+$/.test(normalized) || normalized.length > 10 || normalized.length < 8) {
     return false;
   }
 
@@ -199,7 +201,7 @@ router.get('/:id/openhouses', async (req, res) => {
         const rawId = req.params.id;
 
         if (!validateListingId(rawId)) {
-            return res.status(400).json({ error: 'Malformed property id' });
+            return res.status(400).json({ error: INVALID_PROPERTY_ID_MESSAGE });
         }
 
         const normalizedId = String(rawId).trim();
@@ -222,7 +224,7 @@ router.get('/:id', async (req, res) => {
         const rawId = req.params.id;
 
         if (!validateListingId(rawId)) {
-            return res.status(400).json({ error: 'Malformed property id' });
+            return res.status(400).json({ error: INVALID_PROPERTY_ID_MESSAGE });
         }
 
         const normalizedId = String(rawId).trim();

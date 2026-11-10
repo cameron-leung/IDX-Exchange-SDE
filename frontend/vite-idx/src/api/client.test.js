@@ -12,7 +12,7 @@ describe('apiGet', () => {
   it('throws when the request fails', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }));
 
-    await expect(apiGet('/properties')).rejects.toThrow('API request failed');
+    await expect(apiGet('/properties')).rejects.toThrow('Unable to load property');
   });
 
   // Confirms null/undefined values are stripped before the fetch URL is built.

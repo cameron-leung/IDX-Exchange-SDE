@@ -106,13 +106,17 @@ describe('property API helpers', () => {
   it('calls getPropertyById with the property id route', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ id: 42 }),
+      json: () => Promise.resolve({ id: 12345678 }),
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    await getPropertyById(42);
+    await getPropertyById(12345678);
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/properties/42');
+    expect(fetchMock).toHaveBeenCalledWith('/api/properties/12345678');
+  });
+
+  it('throws a wrong property id error when the listing ID length is invalid', async () => {
+    await expect(getPropertyById(123)).rejects.toThrow('Invalid Property ID');
   });
 
   // Validates the open-house endpoint is called for a specific listing ID.
@@ -123,8 +127,8 @@ describe('property API helpers', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    await getPropertyOpenHouses(42);
+    await getPropertyOpenHouses(12345678);
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/properties/42/openhouses');
+    expect(fetchMock).toHaveBeenCalledWith('/api/properties/12345678/openhouses');
   });
 });

@@ -1,5 +1,7 @@
 import { apiGet } from './client.js';
 
+export const INVALID_PROPERTY_ID_MESSAGE = 'Invalid Property ID';
+
 export function buildPropertiesQuery(filters = {}) {
     const params = new URLSearchParams();
 
@@ -48,10 +50,23 @@ export async function getProperties(filters = {}, pagination = {}) {
     return apiGet('/properties', query);
 }
 
+const isValidPropertyId = (id) => {
+    const normalizedId = String(id ?? '').trim();
+    return /^\d+$/.test(normalizedId) && normalizedId.length >= 8 && normalizedId.length <= 10;
+};
+
 export async function getPropertyById(id) {
+    if (!isValidPropertyId(id)) {
+        throw new Error(INVALID_PROPERTY_ID_MESSAGE);
+    }
+
     return apiGet('/properties/' + id);
 }
 
 export async function getPropertyOpenHouses(id) {
+    if (!isValidPropertyId(id)) {
+        throw new Error(INVALID_PROPERTY_ID_MESSAGE);
+    }
+
     return apiGet('/properties/' + id + '/openhouses');
 }

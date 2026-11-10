@@ -17,7 +17,7 @@ export async function apiGet(endpoint, params = {}) {
     const response = await fetch(`${API_BASE}${endpoint}${queryString ? `?${queryString}` : ''}`);
 
     if (!response.ok) {
-        throw new Error('API request failed');
+        throw new Error('Unable to load property');
     }
     return response.json();
 }
