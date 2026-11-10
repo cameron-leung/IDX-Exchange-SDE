@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getPropertyById } from '../api/properties';
 import { getFirstPhotoUrl } from '../utils/photoUtils';
+import PropertyDetailOpenHouse from './PropertyDetailOpenHouse';
 import PropertyImageGallery from './PropertyImageGallery';
 
 const FALLBACK_IMAGE = 'https://via.placeholder.com/800x500?text=Image+Unavailable';
@@ -58,6 +59,7 @@ const PropertyDetailPage = () => {
     { label: 'Sqft', value: property?.LM_Int2_3 ?? property?.sqft ?? '—' },
     { label: 'Year Built', value: yearBuilt },
   ];
+  const propertyId = property?.L_ListingID ?? property?.id ?? id;
   const photo = getFirstPhotoUrl(property?.L_Photos) || FALLBACK_IMAGE;
 
   return (
@@ -102,30 +104,42 @@ const PropertyDetailPage = () => {
           />
 
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-            <div style={{ fontSize: '42px', fontWeight: 700, lineHeight: 1.2, color: '#111827' }}>{formattedPrice}</div>
+            <div style={{ width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                <div style={{ fontSize: '42px', fontWeight: 700, lineHeight: 1.2, color: '#111827' }}>{formattedPrice}</div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', fontSize: '18px', lineHeight: 1.5, color: '#374151' }}>
-              {specs.map((spec, index) => (
-                <div key={spec.label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {index > 0 && <span style={{ color: '#9ca3af' }}>|</span>}
-                  <span>
-                    {spec.label}: {spec.value}
-                  </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', fontSize: '18px', lineHeight: 1.5, color: '#374151' }}>
+                  {specs.map((spec, index) => (
+                    <div key={spec.label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {index > 0 && <span style={{ color: '#9ca3af' }}>|</span>}
+                      <span>
+                        {spec.label}: {spec.value}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <div style={{ fontSize: '18px', lineHeight: 1.5, color: '#374151', textAlign: 'left' }}>
-              {address}
-              {city ? `, ${city}` : ''}
-              {zip ? ` ${zip}` : ''}
-            </div>
-
-            {property?.L_Remarks && (
-              <div style={{ fontSize: '14px', lineHeight: 1.7, color: '#4b5563', textAlign: 'left', maxWidth: '1000px' }}>
-                {property.L_Remarks}
+                <div style={{ fontSize: '18px', lineHeight: 1.5, color: '#374151', textAlign: 'left' }}>
+                  {address}
+                  {city ? `, ${city}` : ''}
+                  {zip ? ` ${zip}` : ''}
+                </div>
               </div>
-            )}
+
+              {propertyId && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', paddingTop: '8px' }}>
+                  <PropertyDetailOpenHouse L_listingID={propertyId} />
+                </div>
+              )}
+            </div>
+
+            <div style={{ width: '100%', display: 'flex', gap: '20px', paddingTop: '20px', alignItems: 'flex-start' }}>
+              {property?.L_Remarks && (
+                <div style={{ flex: '1 1 auto', minWidth: 0, fontSize: '14px', lineHeight: 1.7, color: '#4b5563', textAlign: 'left', maxWidth: '1000px' }}>
+                  {property.L_Remarks}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

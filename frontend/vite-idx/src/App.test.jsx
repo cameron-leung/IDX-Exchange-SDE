@@ -10,6 +10,7 @@ import { normalizePhotoUrls } from './utils/photoUtils.js';
 vi.mock('./api/properties.js', () => ({
   getProperties: vi.fn(),
   getPropertyById: vi.fn(),
+  getPropertyOpenHouses: vi.fn(),
 }));
 
 describe('App routing', () => {
@@ -38,6 +39,7 @@ describe('App routing', () => {
 
     propertiesApi.getPropertyById.mockResolvedValue({
       id: 'abc-123',
+      L_ListingID: 'abc-123',
       L_Address: '123 Main St',
       L_City: 'Seattle',
       L_Zip: '98101',
@@ -46,6 +48,14 @@ describe('App routing', () => {
       LM_Dec_3: 2,
       LM_Int2_3: 1800,
     });
+
+    propertiesApi.getPropertyOpenHouses.mockResolvedValue([
+      {
+        OpenHouseDate: '2026-11-15',
+        OH_StartTime: '1:00 PM',
+        OH_EndTime: '3:00 PM',
+      },
+    ]);
   });
 
   it('renders the listings page at the root route', async () => {
@@ -65,7 +75,20 @@ describe('App routing', () => {
       expect(propertiesApi.getPropertyById).toHaveBeenCalledWith('abc-123');
     });
 
-    expect(await screen.findByText(/Property Details/i)).toBeTruthy();
+    expect(await screen.findByText(/\$750,000/i)).toBeTruthy();
+  });
+
+  it('loads and displays open house data on the detail page', async () => {
+    window.history.pushState({}, '', '/property/abc-123');
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(propertiesApi.getPropertyOpenHouses).toHaveBeenCalledWith('abc-123');
+    });
+
+    expect(await screen.findByText(/Open House/i)).toBeTruthy();
+    expect(screen.getByText(/2026-11-15/i)).toBeTruthy();
   });
 
   it('normalizes serialized photo payloads the same way across pages', () => {
