@@ -187,7 +187,7 @@ const validateListingId = (value) => {
 
   const normalized = String(value).trim();
 
-  if (!/^\d+$/.test(normalized) || normalized.length > 10 || normalized.length < 8) {
+  if (!/^\d+$/.test(normalized) || normalized.length > 10 || normalized.length < 1) {
     return false;
   }
 
