@@ -85,7 +85,7 @@ export default function PropertyImageGallery({ property, images: incomingImages 
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isLightboxOpen, images.length]);
+  },);
 
   if (!images.length) {
     return (
