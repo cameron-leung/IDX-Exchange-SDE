@@ -1,93 +1,18 @@
 import { useMemo, useState } from 'react';
+import { isPhotoUrl, normalizePhotoUrls } from '../utils/photoUtils';
 
 const MAX_CAROUSEL_IMAGES = 5;
-
-const isPhotoUrl = (url) => {
-  if (typeof url !== 'string') return false;
-
-  const value = url.trim();
-  if (!value || !/^https?:\/\//i.test(value)) return false;
-  if (/\/DOCUMENT-|\/VIDEO-|\.pdf(?:$|[?#])/i.test(value)) return false;
-
-  return /\/PHOTO-/i.test(value) || /\.(jpe?g|png|gif|webp|bmp)(?:$|[?#])/i.test(value);
-};
-
-const getUrlFromPhoto = (photo) => {
-  if (!photo) return null;
-
-  if (typeof photo === 'string') {
-    const value = photo.trim();
-    return value || null;
-  }
-
-  if (Array.isArray(photo)) {
-    return getUrlFromPhoto(photo[0]);
-  }
-
-  if (typeof photo === 'object') {
-    if (Array.isArray(photo.L_Photos)) {
-      return getUrlFromPhoto(photo.L_Photos[0]);
-    }
-
-    if (Array.isArray(photo.photos)) {
-      return getUrlFromPhoto(photo.photos[0]);
-    }
-
-    const directUrl =
-      photo.url ??
-      photo.src ??
-      photo.href ??
-      photo.imageUrl ??
-      photo.imageURL ??
-      photo.ImageUrl;
-
-    if (typeof directUrl === 'string' && directUrl.trim()) {
-      return directUrl.trim();
-    }
-  }
-
-  return null;
-};
-
-const normalizePhotos = (rawPhotos) => {
-  if (!rawPhotos) return [];
-
-  let photos = rawPhotos;
-
-  if (typeof photos === 'string') {
-    try {
-      const parsed = JSON.parse(photos);
-      photos = parsed;
-    } catch {
-      photos = [photos];
-    }
-  }
-
-  if (!Array.isArray(photos)) {
-    if (photos && typeof photos === 'object') {
-      photos = photos.L_Photos ?? photos.photos ?? photos.images ?? photos.Images ?? [];
-    } else {
-      return [];
-    }
-  }
-
-  const urls = photos
-    .map((photo) => getUrlFromPhoto(photo))
-    .filter((url) => isPhotoUrl(url));
-
-  return [...new Set(urls)].slice(0, MAX_CAROUSEL_IMAGES);
-};
 
 export default function PropertyImageCarousel({
   property,
   images,
-  height = 420,
+  height = 500,
   borderRadius = 24,
   className = '',
 }) {
   const basePhotoList = useMemo(() => {
     const source = property?.L_Photos ?? property?.photos ?? property?.Images ?? images;
-    return normalizePhotos(source);
+    return normalizePhotoUrls(source, { maxPhotos: MAX_CAROUSEL_IMAGES }).filter(isPhotoUrl);
   }, [property, images]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -108,12 +33,22 @@ export default function PropertyImageCarousel({
 
   const goToPrevious = () => {
     if (!hasMultipleImages) return;
-    setCurrentIndex((prev) => (prev === 0 ? photoList.length - 1 : prev - 1));
+    setCurrentIndex((prev) => {
+      const normalizedPrev = photoList.length
+        ? ((prev % photoList.length) + photoList.length) % photoList.length
+        : 0;
+      return normalizedPrev === 0 ? photoList.length - 1 : normalizedPrev - 1;
+    });
   };
 
   const goToNext = () => {
     if (!hasMultipleImages) return;
-    setCurrentIndex((prev) => (prev === photoList.length - 1 ? 0 : prev + 1));
+    setCurrentIndex((prev) => {
+      const normalizedPrev = photoList.length
+        ? ((prev % photoList.length) + photoList.length) % photoList.length
+        : 0;
+      return normalizedPrev === photoList.length - 1 ? 0 : normalizedPrev + 1;
+    });
   };
 
   const handleImageError = () => {
@@ -124,7 +59,14 @@ export default function PropertyImageCarousel({
       next.add(currentImage);
       return next;
     });
-    setCurrentIndex(0);
+
+    setCurrentIndex((prev) => {
+      if (photoList.length <= 1) return 0;
+      const normalizedPrev = photoList.length
+        ? ((prev % photoList.length) + photoList.length) % photoList.length
+        : 0;
+      return normalizedPrev >= photoList.length - 1 ? 0 : normalizedPrev + 1;
+    });
   };
 
   if (!photoList.length) {

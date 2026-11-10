@@ -1,67 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { normalizePhotoUrls } from '../utils/photoUtils';
 import './PropertyCard.css'
 
 const FALLBACK_IMAGE = 'https://via.placeholder.com/400x250?text=Image+Unavailable';
 const MAX_PHOTOS = 5;
 
-const sanitizePhotos = (photos) => Array.from(new Set(
-  (photos || [])
-    .filter((photo) => typeof photo === 'string' && /^https?:\/\//i.test(photo.trim()))
-    .map((photo) => photo.trim())
-  )
-).slice(0, MAX_PHOTOS);
-
-const getPhotos = (value, collected = []) => {
-  if (value == null) return collected;
-
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      getPhotos(item, collected);
-    }
-    return collected;
-  }
-
-  if (typeof value === 'string') {
-    const text = value.trim();
-    if (!text) return collected;
-
-    try {
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed)) {
-        return getPhotos(parsed, collected);
-      }
-
-      if (parsed && typeof parsed === 'object') {
-        return getPhotos(
-          parsed.url || parsed.src || parsed.image || parsed.img || parsed.photo || parsed.thumbnail,
-          collected
-        );
-      }
-    } catch {
-      // not valid JSON, fall through to URL detection below
-    }
-
-    const match = text.match(/https?:\/\/[^\s,]+/i);
-    if (match) {
-      const photo = match[0];
-      if (!collected.includes(photo)) collected.push(photo);
-    }
-    return collected;
-  }
-
-  if (typeof value === 'object') {
-    const photo = value.url || value.src || value.image || value.img || value.photo || value.thumbnail || value.href;
-    if (photo) return getPhotos(photo, collected);
-  }
-
-  return collected;
-};
-
 const PropertyPhotoCarousel = ({ photos, address, city, propertyId }) => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [failedUrls, setFailedUrls] = useState(() => new Set());
-  const validPhotos = sanitizePhotos(photos).filter((photo) => !failedUrls.has(photo));
+  const validPhotos = normalizePhotoUrls(photos, { maxPhotos: MAX_PHOTOS }).filter((photo) => !failedUrls.has(photo));
   const photosToShow = validPhotos.length ? validPhotos : [FALLBACK_IMAGE];
 
   const showPreviousPhoto = (event) => {
@@ -93,7 +41,7 @@ const PropertyPhotoCarousel = ({ photos, address, city, propertyId }) => {
     });
 
     setCurrentPhotoIndex(0);
-    event.currentTarget.src = sanitizePhotos(photos).find((photo) => !failedUrls.has(photo)) || FALLBACK_IMAGE;
+    event.currentTarget.src = normalizePhotoUrls(photos, { maxPhotos: MAX_PHOTOS }).find((photo) => !failedUrls.has(photo)) || FALLBACK_IMAGE;
     event.currentTarget.onerror = null;
   };
 
@@ -203,7 +151,7 @@ const PropertyPhotoCarousel = ({ photos, address, city, propertyId }) => {
 };
 
 const PropertyCard = ({ property }) => {
-  const propertyImages = sanitizePhotos(getPhotos(property?.L_Photos));
+  const propertyImages = normalizePhotoUrls(property?.L_Photos, { maxPhotos: MAX_PHOTOS });
   const photos = propertyImages.slice(0, MAX_PHOTOS);
 
   const address = property?.L_Address || property?.address || 'Address unavailable';

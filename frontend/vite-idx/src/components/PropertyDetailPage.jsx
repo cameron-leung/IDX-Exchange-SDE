@@ -1,62 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getPropertyById } from '../api/properties';
+import { getFirstPhotoUrl } from '../utils/photoUtils';
+import PropertyImageGallery from './PropertyImageGallery';
 
 const FALLBACK_IMAGE = 'https://via.placeholder.com/800x500?text=Image+Unavailable';
-
-const isPhotoUrl = (value) => {
-  if (typeof value !== 'string') return false;
-
-  const trim = value.trim();
-  if (!trim || !/^https?:\/\//i.test(trim)) return false;
-  if (/\/DOCUMENT-|\/VIDEO-|\.pdf(?:$|[?#])/i.test(trim)) return false;
-
-  return /\/PHOTO-/i.test(trim) || /\.(jpe?g|png|gif|webp|bmp)(?:$|[?#])/i.test(trim);
-};
-
-const getFirstPhoto = (value) => {
-  if (value == null) return null;
-
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      const photo = getFirstPhoto(item);
-      if (photo) return photo;
-    }
-    return null;
-  }
-
-  if (typeof value === 'string') {
-    const text = value.trim();
-    if (!text) return null;
-
-    try {
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed)) {
-        return getFirstPhoto(parsed);
-      }
-
-      if (parsed && typeof parsed === 'object') {
-        return getFirstPhoto(parsed.url || parsed.src || parsed.image || parsed.img || parsed.photo);
-      }
-    } catch {
-      // Ignore invalid JSON and fall back to URL extraction below.
-    }
-
-    const match = text.match(/https?:\/\/[^\s,]+/i);
-    if (!match) return null;
-
-    const photoUrl = match[0];
-    return isPhotoUrl(photoUrl) ? photoUrl : null;
-  }
-
-  if (typeof value === 'object') {
-    return getFirstPhoto(
-      value.url || value.src || value.image || value.img || value.photo || value.thumbnail
-    );
-  }
-
-  return null;
-};
 
 const PropertyDetailPage = () => {
   const { id } = useParams();
@@ -110,7 +58,7 @@ const PropertyDetailPage = () => {
     { label: 'Sqft', value: property?.LM_Int2_3 ?? property?.sqft ?? '—' },
     { label: 'Year Built', value: yearBuilt },
   ];
-  const photo = getFirstPhoto(property?.L_Photos) || FALLBACK_IMAGE;
+  const photo = getFirstPhotoUrl(property?.L_Photos) || FALLBACK_IMAGE;
 
   if (loading) {
     return <div style={{ padding: '32px', fontFamily: 'Verdana', color: '#666' }}>Loading property...</div>;
@@ -130,17 +78,14 @@ const PropertyDetailPage = () => {
         ← Back to listings
       </Link>
 
-
+      
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'flex-start' }}>
-        <img
-          src={photo}
+        <PropertyImageGallery
+          property={property}
+          images={Array.isArray(property?.L_Photos) && property.L_Photos.length ? property.L_Photos : [photo]}
+          fallbackImage={FALLBACK_IMAGE}
           alt={`${address} ${city}`}
-          style={{ width: '100%', height: '420px', objectFit: 'cover', borderRadius: '16px' }}
-          onError={(event) => {
-            event.currentTarget.onerror = null;
-            event.currentTarget.src = FALLBACK_IMAGE;
-          }}
         />
 
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>

@@ -3,8 +3,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App.jsx';
 import PropertyCard from './components/PropertyCard.jsx';
-//import PropertyImageCarousel from './components/PropertyImageCarousel.jsx';
+import PropertyImageCarousel from './components/PropertyImageCarousel.jsx';
 import * as propertiesApi from './api/properties.js';
+import { normalizePhotoUrls } from './utils/photoUtils.js';
 
 vi.mock('./api/properties.js', () => ({
   getProperties: vi.fn(),
@@ -65,6 +66,42 @@ describe('App routing', () => {
     });
 
     expect(await screen.findByText(/Property Details/i)).toBeTruthy();
+  });
+
+  it('normalizes serialized photo payloads the same way across pages', () => {
+    const payload = JSON.stringify({
+      photos: [
+        'https://example.com/first.jpg',
+        'https://example.com/duplicate.jpg',
+        'not-a-url',
+        { url: 'https://example.com/duplicate.jpg' },
+        { src: 'https://example.com/second.jpg' },
+      ],
+    });
+
+    expect(normalizePhotoUrls(payload)).toEqual([
+      'https://example.com/first.jpg',
+      'https://example.com/duplicate.jpg',
+      'https://example.com/second.jpg',
+    ]);
+  });
+
+  it('keeps the current image when the same photos are re-rendered with a fresh property object', () => {
+    const firstPhoto = 'https://example.com/first.jpg';
+    const secondPhoto = 'https://example.com/second.jpg';
+    const thirdPhoto = 'https://example.com/third.jpg';
+    const property = {
+      L_Photos: [firstPhoto, secondPhoto, thirdPhoto],
+    };
+
+    const { rerender } = render(<PropertyImageCarousel property={property} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /next image/i }));
+    expect(screen.getByRole('img', { name: 'Property' }).getAttribute('src')).toBe(secondPhoto);
+
+    rerender(<PropertyImageCarousel property={{ ...property }} />);
+
+    expect(screen.getByRole('img', { name: 'Property' }).getAttribute('src')).toBe(secondPhoto);
   });
 
   it('resets to the original first photo and hides the carousel controls when only one valid image remains', async () => {
