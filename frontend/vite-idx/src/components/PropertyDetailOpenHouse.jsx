@@ -125,6 +125,7 @@ const PropertyDetailOpenHouse = ({ L_listingID, onOpenHousesLoaded }) => {
 
   useEffect(() => {
     if (!L_listingID) {
+      onOpenHousesLoaded?.([]);
       dispatch({ type: 'RESET' });
       return;
     }
@@ -141,22 +142,19 @@ const PropertyDetailOpenHouse = ({ L_listingID, onOpenHousesLoaded }) => {
 
         const data = await getPropertyOpenHouses(L_listingID);
         const items = Array.isArray(data) ? data : data?.results || data?.data || [];
-
-        if (onOpenHousesLoaded) {
-          const remarks = items
-            .map((item) => getOpenHouseRemarks(item))
-            .filter(Boolean);
-
-          onOpenHousesLoaded(remarks);
-        }
+        const remarks = items
+          .map((item) => getOpenHouseRemarks(item))
+          .filter(Boolean);
 
         if (isMounted) {
+          onOpenHousesLoaded?.(remarks);
           dispatch({ type: 'SUCCESS', payload: items });
         }
       } catch (err) {
         console.error('Error fetching open houses:', err);
 
         if (isMounted) {
+          onOpenHousesLoaded?.([]);
           dispatch({ type: 'ERROR', payload: 'Open house information unavailable' });
         }
       }
@@ -185,7 +183,7 @@ const PropertyDetailOpenHouse = ({ L_listingID, onOpenHousesLoaded }) => {
     );
   }
 
-  if (!openHouses.length) {
+  if (!openHouses.length && !loading) {
     return null;
   }
 

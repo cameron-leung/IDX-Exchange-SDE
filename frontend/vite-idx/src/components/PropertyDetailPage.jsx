@@ -4,6 +4,7 @@ import { getPropertyById } from '../api/properties';
 import { getFirstPhotoUrl } from '../utils/photoUtils';
 import PropertyDetailOpenHouse from './PropertyDetailOpenHouse';
 import PropertyImageGallery from './PropertyImageGallery';
+import PropertyMap from './PropertyMap';
 
 const FALLBACK_IMAGE = 'https://via.placeholder.com/800x500?text=Image+Unavailable';
 
@@ -62,6 +63,9 @@ const PropertyDetailPage = () => {
     { label: 'Year Built', value: yearBuilt },
   ];
   const photo = getFirstPhotoUrl(property?.L_Photos) || FALLBACK_IMAGE;
+  const latitude = property?.LMD_MP_Latitude;
+  const longitude = property?.LMD_MP_Longitude;
+  const hasMapCoordinates = latitude != null && longitude != null;
 
   return (
     <div style={{ padding: '32px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'Verdana', textAlign: 'left' }}>
@@ -163,6 +167,22 @@ const PropertyDetailPage = () => {
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {hasMapCoordinates && (
+              <div style={{ width: '100%', paddingTop: '20px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7280', marginBottom: '12px' }}>
+                  Map
+                </div>
+                <PropertyMap
+                  property={property}
+                  address={address}
+                  latitude={latitude}
+                  longitude={longitude}
+                  width="100%"
+                  height="320px"
+                />
               </div>
             )}
           </div>
